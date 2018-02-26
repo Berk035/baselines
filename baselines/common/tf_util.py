@@ -193,6 +193,30 @@ class _Function(object):
             feed_dict[inpt] = feed_dict.get(inpt, self.givens[inpt])
         results = tf.get_default_session().run(self.outputs_update, feed_dict=feed_dict)[:-1]
         return results
+# ================================================================
+# Saving variables
+# ================================================================
+
+def load_state(fname, var_list=None):
+    saver = tf.train.Saver(var_list=var_list)
+    saver.restore(get_session(), fname)
+
+def save_state(fname, var_list=None):
+    os.makedirs(os.path.dirname(fname), exist_ok=True)
+    saver = tf.train.Saver(var_list=var_list)
+    saver.save(get_session(), fname)
+    
+    
+def get_session():
+    """Returns recently made Tensorflow session"""
+    return tf.get_default_session()
+
+def make_session(num_cpu):
+    """Returns a session that will use <num_cpu> CPU's only"""
+    tf_config = tf.ConfigProto(
+        inter_op_parallelism_threads=num_cpu,
+        intra_op_parallelism_threads=num_cpu)
+    return tf.Session(config=tf_config)
 
 # ================================================================
 # Flat vectors
