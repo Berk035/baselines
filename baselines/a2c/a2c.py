@@ -7,6 +7,7 @@ import logging
 import numpy as np
 import tensorflow as tf
 from baselines import logger
+from gibson.utils import utils
 
 from baselines.common import set_global_seeds, explained_variance
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
@@ -18,12 +19,14 @@ from baselines.a2c.utils import Scheduler, make_path, find_trainable_variables
 from baselines.a2c.utils import cat_entropy, mse
 
 class Model(object):
-
     def __init__(self, policy, ob_space, ac_space, nenvs, nsteps,
             ent_coef=0.01, vf_coef=0.5, max_grad_norm=0.5, lr=7e-4,
             alpha=0.99, epsilon=1e-5, total_timesteps=int(80e6), lrschedule='linear'):
 
-        sess = tf_util.make_session()
+#        sess = tf_util.make_session()
+        sess = utils.make_gpu_session(1)
+        sess.__enter__()
+
         nact = ac_space.n
         nbatch = nenvs*nsteps
 
@@ -93,7 +96,8 @@ class Runner(object):
         self.env = env
         self.model = model
         nh, nw, nc = env.observation_space.shape
-        nenv = env.num_envs
+        #nenv = env.num_envs
+        nenv = 1
         self.batch_ob_shape = (nenv*nsteps, nh, nw, nc)
         self.obs = np.zeros((nenv, nh, nw, nc), dtype=np.uint8)
         self.nc = nc
@@ -146,10 +150,11 @@ class Runner(object):
         return mb_obs, mb_states, mb_rewards, mb_masks, mb_actions, mb_values
 
 def learn(policy, env, seed, nsteps=5, total_timesteps=int(80e6), vf_coef=0.5, ent_coef=0.01, max_grad_norm=0.5, lr=7e-4, lrschedule='linear', epsilon=1e-5, alpha=0.99, gamma=0.99, log_interval=100):
-    tf.reset_default_graph()
+#    tf.reset_default_graph()
     set_global_seeds(seed)
 
-    nenvs = env.num_envs
+#    nenvs = env.num_envs
+    nenvs = 1
     ob_space = env.observation_space
     ac_space = env.action_space
     model = Model(policy=policy, ob_space=ob_space, ac_space=ac_space, nenvs=nenvs, nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
