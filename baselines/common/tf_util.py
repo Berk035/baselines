@@ -192,6 +192,7 @@ class _Function(object):
         for inpt in self.givens:
             feed_dict[inpt] = feed_dict.get(inpt, self.givens[inpt])
         results = tf.get_default_session().run(self.outputs_update, feed_dict=feed_dict)[:-1]
+        #WARNING: 5 Değere bak!
         return results
 # ================================================================
 # Saving variables
